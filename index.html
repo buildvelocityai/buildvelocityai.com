@@ -1219,7 +1219,8 @@
 
         <!-- Form -->
         <div class="form-card reveal">
-          <form class="form" action="mailto:hello@buildvelocityai.com" method="post" enctype="text/plain">
+          <form class="form" id="contact-form" action="https://formspree.io/f/xrejopaa" method="POST">
+            <input type="hidden" name="_subject" value="New inquiry — Build Velocity AI" />
             <div class="form-row-2">
               <div class="fg">
                 <label for="fn">Your Name</label>
@@ -1252,8 +1253,15 @@
               <label for="msg">Anything else?</label>
               <textarea id="msg" name="message" placeholder="Tell us about your practice, current challenges, or any questions you have…"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary btn-full" style="padding:15px;">Send Message →</button>
+            <button type="submit" class="btn btn-primary btn-full" id="form-submit" style="padding:15px;">Send Message →</button>
           </form>
+
+          <!-- Success state (hidden until submission) -->
+          <div id="form-success" style="display:none; text-align:center; padding: 48px 24px;">
+            <div style="font-size:2.5rem; margin-bottom:16px;">✅</div>
+            <h3 style="font-size:1.2rem; font-weight:700; color:var(--white); margin-bottom:10px;">Message Sent!</h3>
+            <p style="font-size:0.9rem; color:var(--muted2); line-height:1.65;">Thanks for reaching out. We'll get back to you within one business day.</p>
+          </div>
         </div>
 
       </div>
@@ -1316,6 +1324,42 @@
         document.body.style.overflow = '';
       });
     });
+
+    /* ── Formspree AJAX submission ── */
+    const contactForm = document.getElementById('contact-form');
+    const submitBtn   = document.getElementById('form-submit');
+    const formSuccess = document.getElementById('form-success');
+
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending…';
+
+        try {
+          const res = await fetch(contactForm.action, {
+            method: 'POST',
+            body: new FormData(contactForm),
+            headers: { 'Accept': 'application/json' }
+          });
+
+          if (res.ok) {
+            contactForm.style.display = 'none';
+            formSuccess.style.display = 'block';
+          } else {
+            const data = await res.json();
+            const msg  = data.errors ? data.errors.map(err => err.message).join(', ') : 'Something went wrong. Please try again.';
+            alert(msg);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message →';
+          }
+        } catch {
+          alert('Network error — please check your connection and try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message →';
+        }
+      });
+    }
 
     /* ── Animate call timer in hero mockup ── */
     let secs = 42;
